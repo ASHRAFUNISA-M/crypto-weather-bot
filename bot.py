@@ -6,11 +6,11 @@ def get_crypto_prices():
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
         response = requests.get(url)
         data = response.json()
-
+        
         btc = data.get('bitcoin', {}).get('usd', 'N/A')
         ethereum = data.get('ethereum', {}).get('usd', 'N/A')
         sol = data.get('solana', {}).get('usd', 'N/A')
-
+        
         return f"BTC: ${btc} | ETH: ${ethereum} | SOL: ${sol}"
     except Exception as e:
         return f"Could not fetch crypto prices: {e}"
@@ -20,7 +20,7 @@ def get_weather():
         url = "https://api.open-meteo.com/v1/forecast?latitude=12.9292&longitude=77.6268&current=temperature_2m,weather_code"
         response = requests.get(url)
         data = response.json()
-
+        
         temp = data.get('current', {}).get('temperature_2m', 'N/A')
         return f"Temperature: {temp}°C"
     except Exception as e:
