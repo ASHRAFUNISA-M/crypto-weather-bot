@@ -1,44 +1,37 @@
-import requests
-import datetime
+name: Run Bot and Deploy Website
 
-def get_crypto_prices():
-    try:
-        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        
-        btc = data.get('bitcoin', {}).get('usd', 'N/A')
-        eth = data.get('ethereum', {}).get('usd', 'N/A')
-        sol = data.get('solana', {}).get('usd', 'N/A')
-        
-        return f"🪙 **Crypto Market Update:**\n- Bitcoin (BTC): ${btc}\n- Ethereum (ETH): ${eth}\n- Solana (SOL): ${sol}"
-    except Exception as e:
-        return f"Could not fetch crypto prices: {e}"
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-def get_weather():
-    try:
-        # Example coordinates for New York (change if desired)
-        url = "https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&current_weather=true"
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        weather = data.get('current_weather', {})
-        
-        temp = weather.get('temperature', 'N/A')
-        wind = weather.get('windspeed', 'N/A')
-        
-        return f"🌤️ **Weather Update (New York):**\n- Temperature: {temp}°C\n- Wind Speed: {wind} km/h"
-    except Exception as e:
-        return f"Could not fetch weather: {e}"
+permissions:
+  contents: write
 
-if __name__ == "__main__":
-    print("=" * 40)
-    print(f"🤖 Bot Report Run Timestamp: {datetime.datetime.now()}")
-    print("=" * 40)
-    
-    crypto_report = get_crypto_prices()
-    print(crypto_report)
-    print("-" * 40)
-    
-    weather_report = get_weather()
-    print(weather_report)
-    print("=" * 40)
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run bot script to generate HTML
+        run: python bot.py
+
+      - name: Commit and push generated index.html
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update live dashboard index.html"
+          git push
